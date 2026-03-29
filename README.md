@@ -20,7 +20,7 @@ python main.py
 
 SETUP STEPS
 ✅ Step 1: Go to your project folder
-cd customer-support-openenv
+cd customer-support-env
 ✅ Step 2: Create virtual environment (recommended)
 python -m venv venv
 Activate it:
