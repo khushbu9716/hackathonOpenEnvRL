@@ -1,31 +1,23 @@
-import os
-from openai import OpenAI
 from env.environment import CustomerSupportEnv
 from env.models import Action
-
-client = OpenAI(api_key=os.getenv("OPENAIAPIKEY"))
 
 def run():
     env = CustomerSupportEnv()
     obs = env.reset()
 
-    prompt = f"""
-    Customer: {obs.customer_message}
-    What is the best response?
-    """
+    print("Customer:", obs.customer_message)
 
-    response = client.chat.completions.create(
-        model="gpt-5-mini",
-        messages=[{"role": "user", "content": prompt}]
-    )
+    # Simple rule-based agent (no API)
+    if "order" in obs.customer_message.lower():
+        msg = "Here is your tracking link"
+    elif "damaged" in obs.customer_message.lower():
+        msg = "Sorry for the issue, we will process your refund"
+    else:
+        msg = "Can you please provide more details?"
 
-    message = response.choices[0].message.content
-
-    action = Action(action_type="reply", message=message)
+    action = Action(action_type="reply", message=msg)
 
     obs, reward, done, _ = env.step(action)
 
+    print("Agent:", msg)
     print("Reward:", reward.score)
-
-if __name__ == "__main__":
-    run()
