@@ -1,8 +1,0 @@
-name: customer-support-env
-description: Customer support simulation environment
-version: 0.1
-
-tasks:
-  - easy
-  - medium
-  - hard

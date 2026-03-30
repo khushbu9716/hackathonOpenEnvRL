@@ -1,0 +1,167 @@
+# openenv.yaml
+# E-Commerce Customer Support Environment Manifest
+# Required by: openenv validate, openenv push, HuggingFace Space deployment
+
+name: ecommerce_support_env
+version: "1.0.0"
+description: >
+  A reinforcement learning environment that simulates an e-commerce
+  customer support agent. The agent handles real support tickets —
+  classifying issues, drafting responses, and managing escalations —
+  across three tasks of increasing difficulty.
+
+# Who built this
+authors:
+  - name: "Your Team Name"
+    email: "your@email.com"
+
+# HuggingFace Space settings
+space:
+  # This tag is REQUIRED for the hackathon submission
+  tags:
+    - openenv
+    - customer-support
+    - e-commerce
+    - rl-environment
+    - agentic
+  sdk: docker
+  port: 7860
+
+# Environment interface metadata
+interface:
+  # The three methods every OpenEnv environment must implement
+  reset: true
+  step: true
+  state: true
+
+# Action space description (for documentation and discoverability)
+action_space:
+  type: discrete
+  actions:
+    - name: classify
+      description: "Label the ticket with a category"
+      fields:
+        - name: category
+          type: string
+          enum: [billing, delivery, refund, product_issue, general_inquiry]
+
+    - name: respond
+      description: "Send a reply message to the customer"
+      fields:
+        - name: message
+          type: string
+
+    - name: escalate
+      description: "Route the ticket to a specific department"
+      fields:
+        - name: department
+          type: string
+          enum: [billing_team, logistics_team, technical_team, legal_team, senior_support]
+
+    - name: request_info
+      description: "Ask the customer for more information"
+      fields:
+        - name: message
+          type: string
+
+    - name: resolve
+      description: "Mark the ticket as resolved and close the episode"
+      fields:
+        - name: resolution_note
+          type: string
+
+# Observation space description
+observation_space:
+  fields:
+    - name: ticket_id
+      type: string
+    - name: ticket_text
+      type: string
+    - name: customer_name
+      type: string
+    - name: order_id
+      type: string
+      optional: true
+    - name: conversation_history
+      type: list[dict]
+    - name: available_actions
+      type: list[string]
+    - name: last_action_feedback
+      type: string
+      optional: true
+    - name: done
+      type: boolean
+    - name: reward
+      type: float
+    - name: task_id
+      type: string
+    - name: difficulty
+      type: string
+      enum: [easy, medium, hard]
+
+# Tasks defined in this environment
+tasks:
+  - id: task1_classify
+    name: "Ticket Classification"
+    difficulty: easy
+    description: >
+      Agent reads a customer support ticket and assigns the correct
+      category label. Graded by exact match against ground truth.
+    max_steps: 3
+    reward_range: [0.0, 1.0]
+
+  - id: task2_respond
+    name: "Response Generation"
+    difficulty: medium
+    description: >
+      Agent must draft an appropriate reply that addresses the customer's
+      issue, uses the correct tone, and includes all required information.
+    max_steps: 5
+    reward_range: [0.0, 1.0]
+
+  - id: task3_escalate
+    name: "Multi-turn Escalation Handling"
+    difficulty: hard
+    description: >
+      Agent handles a frustrated customer across multiple turns. Must
+      de-escalate, resolve the root issue, and remain consistent across
+      the entire conversation without contradicting earlier statements.
+    max_steps: 10
+    reward_range: [0.0, 1.0]
+
+# Reward function summary
+reward:
+  type: shaped
+  description: >
+    Partial progress rewards throughout the episode.
+    Critical signals (classification, resolution) weighted higher.
+    Penalties for wrong escalation paths and repetitive behavior.
+  signals:
+    - name: correct_classification
+      value: +0.3
+    - name: issue_resolved
+      value: +0.4
+    - name: response_completeness
+      value: +0.2
+    - name: appropriate_tone
+      value: +0.05
+    - name: no_hallucinated_policies
+      value: +0.05
+    - name: wrong_escalation_path
+      value: -0.2
+    - name: infinite_loop_or_repetition
+      value: -0.4
+
+# Runtime / deployment
+runtime:
+  language: python
+  python_version: "3.11"
+  server: uvicorn
+  port: 8000
+  health_endpoint: /health
+
+# Dataset used
+dataset:
+  name: "NebulaByte/E-Commerce_Customer_Support_Conversations"
+  source: huggingface
+  license: apache-2.0

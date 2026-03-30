@@ -1,0 +1,385 @@
+{
+  "metadata": {
+    "description": "E-commerce customer support tickets for OpenEnv environment",
+    "source": "Inspired by NebulaByte/E-Commerce_Customer_Support_Conversations and bitext/Bitext-retail-ecommerce-llm-chatbot-training-dataset",
+    "total_tickets": 18,
+    "categories": ["billing", "delivery", "refund", "product_issue", "general_inquiry"],
+    "tasks": ["task1_classify", "task2_respond", "task3_escalate"]
+  },
+
+  "task1_classify": {
+    "description": "Easy — Agent reads a single ticket and classifies it. No response needed.",
+    "tickets": [
+      {
+        "ticket_id": "T1-001",
+        "customer_name": "Alice Martin",
+        "order_id": "ORD-48291",
+        "ticket_text": "Hi, I was charged twice for my order placed on March 12th. Please help me fix this.",
+        "ground_truth_category": "billing",
+        "difficulty": "easy"
+      },
+      {
+        "ticket_id": "T1-002",
+        "customer_name": "James Patel",
+        "order_id": "ORD-39201",
+        "ticket_text": "My package was supposed to arrive 3 days ago but it still hasn't shown up. The tracking page just says 'in transit'.",
+        "ground_truth_category": "delivery",
+        "difficulty": "easy"
+      },
+      {
+        "ticket_id": "T1-003",
+        "customer_name": "Sara Nguyen",
+        "order_id": "ORD-77412",
+        "ticket_text": "I received a damaged item. The box was completely crushed and the product inside is broken. I want a replacement or a full refund.",
+        "ground_truth_category": "refund",
+        "difficulty": "easy"
+      },
+      {
+        "ticket_id": "T1-004",
+        "customer_name": "David Clarke",
+        "order_id": "ORD-55021",
+        "ticket_text": "The laptop I bought keeps crashing after 10 minutes of use. I've tried restarting multiple times.",
+        "ground_truth_category": "product_issue",
+        "difficulty": "easy"
+      },
+      {
+        "ticket_id": "T1-005",
+        "customer_name": "Priya Sharma",
+        "order_id": null,
+        "ticket_text": "Do you offer student discounts? I'm looking to buy a few items for my dorm room.",
+        "ground_truth_category": "general_inquiry",
+        "difficulty": "easy"
+      },
+      {
+        "ticket_id": "T1-006",
+        "customer_name": "Tom Baker",
+        "order_id": "ORD-61100",
+        "ticket_text": "I returned my shoes two weeks ago but I still haven't received my money back. The return was confirmed by your team.",
+        "ground_truth_category": "refund",
+        "difficulty": "easy"
+      }
+    ]
+  },
+
+  "task2_respond": {
+    "description": "Medium — Agent classifies the ticket AND drafts an appropriate response. Grader checks tone, completeness, and accuracy.",
+    "policies": {
+      "refund_window_days": 30,
+      "standard_delivery_days": 5,
+      "express_delivery_days": 2,
+      "damaged_item_policy": "Customer is entitled to a full refund or replacement within 30 days of delivery.",
+      "billing_dispute_policy": "Duplicate charges are refunded within 3-5 business days after verification.",
+      "return_confirmation_policy": "Refunds are processed within 7 business days of return receipt confirmation."
+    },
+    "required_response_elements": {
+      "billing": ["acknowledgment", "timeline", "ticket_id"],
+      "delivery": ["acknowledgment", "tracking_advice", "escalation_option", "ticket_id"],
+      "refund": ["acknowledgment", "policy_reference", "next_steps", "ticket_id"],
+      "product_issue": ["acknowledgment", "troubleshooting_or_replacement", "ticket_id"],
+      "general_inquiry": ["acknowledgment", "accurate_answer", "ticket_id"]
+    },
+    "tickets": [
+      {
+        "ticket_id": "T2-001",
+        "customer_name": "Linda Zhou",
+        "order_id": "ORD-82910",
+        "ticket_text": "I was charged $149.99 twice for the same order. Please refund the extra charge immediately.",
+        "ground_truth_category": "billing",
+        "difficulty": "medium",
+        "expected_response_elements": ["acknowledgment", "timeline", "ticket_id"],
+        "tone": "empathetic and professional",
+        "forbidden_statements": [
+          "we cannot help",
+          "not our fault",
+          "contact your bank"
+        ]
+      },
+      {
+        "ticket_id": "T2-002",
+        "customer_name": "Marco Rossi",
+        "order_id": "ORD-90044",
+        "ticket_text": "I ordered a winter jacket 10 days ago and it hasn't arrived yet. I need it for an event this weekend!",
+        "ground_truth_category": "delivery",
+        "difficulty": "medium",
+        "expected_response_elements": ["acknowledgment", "tracking_advice", "escalation_option", "ticket_id"],
+        "tone": "empathetic and urgent",
+        "forbidden_statements": [
+          "nothing we can do",
+          "wait longer",
+          "not responsible for delays"
+        ]
+      },
+      {
+        "ticket_id": "T2-003",
+        "customer_name": "Fatima Hassan",
+        "order_id": "ORD-71209",
+        "ticket_text": "The blender I received has a cracked lid. I sent photos already. I want a refund, not a replacement.",
+        "ground_truth_category": "refund",
+        "difficulty": "medium",
+        "expected_response_elements": ["acknowledgment", "policy_reference", "next_steps", "ticket_id"],
+        "tone": "empathetic and clear",
+        "forbidden_statements": [
+          "no refunds after 7 days",
+          "replacements only",
+          "must return first before refund decision"
+        ]
+      },
+      {
+        "ticket_id": "T2-004",
+        "customer_name": "Chen Wei",
+        "order_id": "ORD-55678",
+        "ticket_text": "My new headphones connect fine but the right earbud produces no sound at all. Is this a known issue?",
+        "ground_truth_category": "product_issue",
+        "difficulty": "medium",
+        "expected_response_elements": ["acknowledgment", "troubleshooting_or_replacement", "ticket_id"],
+        "tone": "helpful and technical",
+        "forbidden_statements": [
+          "user error",
+          "not covered",
+          "buy a new one"
+        ]
+      },
+      {
+        "ticket_id": "T2-005",
+        "customer_name": "Rachel Green",
+        "order_id": null,
+        "ticket_text": "Can I change the delivery address for an order after it has been placed? The order was placed 2 hours ago.",
+        "ground_truth_category": "general_inquiry",
+        "difficulty": "medium",
+        "expected_response_elements": ["acknowledgment", "accurate_answer", "ticket_id"],
+        "tone": "helpful and concise",
+        "forbidden_statements": [
+          "impossible",
+          "you should have done it earlier"
+        ]
+      },
+      {
+        "ticket_id": "T2-006",
+        "customer_name": "Omar Abdullah",
+        "order_id": "ORD-44019",
+        "ticket_text": "I returned my order 10 days ago and still have not received the refund. The tracking shows it was delivered to your warehouse.",
+        "ground_truth_category": "refund",
+        "difficulty": "medium",
+        "expected_response_elements": ["acknowledgment", "policy_reference", "next_steps", "ticket_id"],
+        "tone": "empathetic and reassuring",
+        "forbidden_statements": [
+          "we have no record",
+          "not our responsibility",
+          "wait more time"
+        ]
+      }
+    ]
+  },
+
+  "task3_escalate": {
+    "description": "Hard — Multi-turn conversation. Customer is frustrated and escalating. Agent must de-escalate, resolve the issue, and remain consistent across all turns.",
+    "escalation_rules": {
+      "legal_threat": "escalate to legal_team",
+      "repeated_unresolved_billing": "escalate to billing_team after 2 failed attempts",
+      "abusive_language": "escalate to senior_support",
+      "unresolved_after_3_turns": "escalate to senior_support"
+    },
+    "tickets": [
+      {
+        "ticket_id": "T3-001",
+        "customer_name": "Kevin Moore",
+        "order_id": "ORD-29100",
+        "difficulty": "hard",
+        "ground_truth_category": "billing",
+        "correct_escalation_path": "billing_team",
+        "scenario_summary": "Customer has been charged 3 times for one order over 2 weeks. Has contacted support twice before with no resolution. Now threatening to dispute with credit card company.",
+        "conversation_history": [
+          {
+            "turn": 1,
+            "role": "customer",
+            "content": "This is ridiculous. I've been charged THREE times for order ORD-29100 and nobody has fixed it. I called twice already!"
+          },
+          {
+            "turn": 2,
+            "role": "customer",
+            "content": "Don't give me another apology. I want this fixed TODAY or I'm filing a chargeback with my bank."
+          },
+          {
+            "turn": 3,
+            "role": "customer",
+            "content": "I was told last week the refund would be processed in 3 days. That was 7 days ago. What happened?"
+          }
+        ],
+        "resolution_criteria": {
+          "must_acknowledge_previous_failures": true,
+          "must_escalate_to": "billing_team",
+          "must_provide_timeline": true,
+          "must_not_contradict_prior_turn": true,
+          "sentiment_must_improve": true
+        }
+      },
+      {
+        "ticket_id": "T3-002",
+        "customer_name": "Sophie Turner",
+        "order_id": "ORD-83021",
+        "difficulty": "hard",
+        "ground_truth_category": "delivery",
+        "correct_escalation_path": "logistics_team",
+        "scenario_summary": "Customer ordered a birthday gift. It is now 2 weeks late. First agent told her it would arrive in 2 days — it didn't. She is very upset.",
+        "conversation_history": [
+          {
+            "turn": 1,
+            "role": "customer",
+            "content": "My order ORD-83021 was supposed to be a birthday gift. It's now 2 weeks late. I was told it would arrive on the 20th. It's the 4th now!"
+          },
+          {
+            "turn": 2,
+            "role": "customer",
+            "content": "The last agent told me 2 days ago it would arrive yesterday. It didn't. Stop lying to me."
+          },
+          {
+            "turn": 3,
+            "role": "customer",
+            "content": "I don't want tracking information. I want to know exactly where it is and who is responsible for this mess."
+          }
+        ],
+        "resolution_criteria": {
+          "must_acknowledge_previous_failures": true,
+          "must_escalate_to": "logistics_team",
+          "must_not_give_new_false_promises": true,
+          "must_not_contradict_prior_turn": true,
+          "sentiment_must_improve": true
+        }
+      },
+      {
+        "ticket_id": "T3-003",
+        "customer_name": "Arjun Mehta",
+        "order_id": "ORD-66511",
+        "difficulty": "hard",
+        "ground_truth_category": "product_issue",
+        "correct_escalation_path": "senior_support",
+        "scenario_summary": "Customer bought an expensive camera. It stopped working after 3 days. First asked for repair, then replacement — both denied by previous agents. Now threatening legal action.",
+        "conversation_history": [
+          {
+            "turn": 1,
+            "role": "customer",
+            "content": "The camera I bought for $800 stopped working after 3 days. This is completely unacceptable."
+          },
+          {
+            "turn": 2,
+            "role": "customer",
+            "content": "I was told I could get a replacement but now another agent says no. Which is it? Your team keeps contradicting itself."
+          },
+          {
+            "turn": 3,
+            "role": "customer",
+            "content": "I am going to contact consumer protection services if this is not resolved today. I have all the chat transcripts saved."
+          }
+        ],
+        "resolution_criteria": {
+          "must_acknowledge_previous_failures": true,
+          "must_escalate_to": "senior_support",
+          "must_acknowledge_legal_threat": true,
+          "must_not_contradict_prior_turn": true,
+          "must_not_dismiss_legal_threat": true,
+          "sentiment_must_improve": true
+        }
+      },
+      {
+        "ticket_id": "T3-004",
+        "customer_name": "Nina Johansson",
+        "order_id": "ORD-52200",
+        "difficulty": "hard",
+        "ground_truth_category": "refund",
+        "correct_escalation_path": "billing_team",
+        "scenario_summary": "Customer returned items 3 weeks ago. Refund still not received. Has screenshots of all communication. Becoming increasingly frustrated across 3 turns.",
+        "conversation_history": [
+          {
+            "turn": 1,
+            "role": "customer",
+            "content": "It has been 3 weeks since I returned my items and still no refund. I have the return tracking confirmation."
+          },
+          {
+            "turn": 2,
+            "role": "customer",
+            "content": "I was told last week it would be processed in 2 business days. That was 6 days ago."
+          },
+          {
+            "turn": 3,
+            "role": "customer",
+            "content": "I am done waiting. Either you process my refund right now or I am posting this entire conversation on social media."
+          }
+        ],
+        "resolution_criteria": {
+          "must_acknowledge_previous_failures": true,
+          "must_escalate_to": "billing_team",
+          "must_provide_concrete_next_steps": true,
+          "must_not_contradict_prior_turn": true,
+          "sentiment_must_improve": true
+        }
+      },
+      {
+        "ticket_id": "T3-005",
+        "customer_name": "Carlos Rivera",
+        "order_id": "ORD-71800",
+        "difficulty": "hard",
+        "ground_truth_category": "delivery",
+        "correct_escalation_path": "logistics_team",
+        "scenario_summary": "Customer's order was marked delivered but never received. Neighbour confirmed no parcel. Suspects theft or misdelivery. Previous agent closed the ticket without resolution.",
+        "conversation_history": [
+          {
+            "turn": 1,
+            "role": "customer",
+            "content": "Your system says my order was delivered but I never received it. My neighbour was home all day and confirms nothing arrived."
+          },
+          {
+            "turn": 2,
+            "role": "customer",
+            "content": "A previous agent closed my ticket saying it was delivered. How can you close a ticket when I never got my package?"
+          },
+          {
+            "turn": 3,
+            "role": "customer",
+            "content": "I want someone to actually investigate this, not just copy-paste a response at me."
+          }
+        ],
+        "resolution_criteria": {
+          "must_acknowledge_previous_failures": true,
+          "must_escalate_to": "logistics_team",
+          "must_reopen_investigation": true,
+          "must_not_contradict_prior_turn": true,
+          "sentiment_must_improve": true
+        }
+      },
+      {
+        "ticket_id": "T3-006",
+        "customer_name": "Yuki Tanaka",
+        "order_id": "ORD-88402",
+        "difficulty": "hard",
+        "ground_truth_category": "product_issue",
+        "correct_escalation_path": "technical_team",
+        "scenario_summary": "Customer bought a smart home device that is incompatible with their existing setup despite the product page claiming compatibility. Multiple agents gave conflicting technical advice.",
+        "conversation_history": [
+          {
+            "turn": 1,
+            "role": "customer",
+            "content": "The smart hub I bought says on your website it is compatible with HomeKit. It is not. I've spent 4 hours trying to set it up."
+          },
+          {
+            "turn": 2,
+            "role": "customer",
+            "content": "One agent told me to update the firmware. Another told me to reset the device. Neither worked. These people don't know what they're talking about."
+          },
+          {
+            "turn": 3,
+            "role": "customer",
+            "content": "If your product page has wrong information, that is false advertising. I want either a fix or a full refund."
+          }
+        ],
+        "resolution_criteria": {
+          "must_acknowledge_previous_failures": true,
+          "must_escalate_to": "technical_team",
+          "must_acknowledge_product_page_claim": true,
+          "must_offer_refund_as_option": true,
+          "must_not_contradict_prior_turn": true,
+          "sentiment_must_improve": true
+        }
+      }
+    ]
+  }
+}
