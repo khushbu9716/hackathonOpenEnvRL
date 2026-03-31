@@ -43,12 +43,15 @@ class CustomerSupportEnvironment(Environment):
     or takes an invalid action 3 times in a row.
     """
 
-    def __init__(self):
+    def __init__(self, task_id: str = "task1_classify", ticket_id: str = None):
         # Load ticket dataset once at startup
         with open(TICKETS_PATH, "r") as f:
             self._all_tickets = json.load(f)
-
-        # Internal state — will be properly initialised in reset()
+    
+        self._default_task_id = task_id
+        self._default_ticket_id = ticket_id
+    
+        # initialise state
         self._state = State(episode_id=str(uuid.uuid4()), step_count=0)
         self._current_ticket = None
         self._task_id = None
@@ -56,8 +59,6 @@ class CustomerSupportEnvironment(Environment):
         self._cumulative_reward = 0.0
         self._done = False
         self._invalid_action_count = 0
-
-        # Track what the agent has done this episode
         self._classified = False
         self._responded = False
         self._escalated = False
@@ -69,7 +70,9 @@ class CustomerSupportEnvironment(Environment):
     # reset() — start a new episode
     # -----------------------------------------------------------------------
 
-    def reset(self, task_id: str = "task1_classify", ticket_id: str = None) -> SupportObservation:
+    def reset(self) -> SupportObservation:
+        task_id = self._default_task_id
+        ticket_id = self._default_ticket_id
         """
         Start a new episode.
 

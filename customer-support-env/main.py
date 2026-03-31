@@ -16,8 +16,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
-from openenv.core.env_server import create_fastapi_app
-
+from openenv.core.env_server import create_app
 from models import SupportAction, SupportObservation
 from env.environment import CustomerSupportEnvironment
 from env.graders import get_grader
@@ -35,10 +34,11 @@ environment = CustomerSupportEnvironment()
 # This gives us /reset, /step, /state endpoints automatically
 # ---------------------------------------------------------------------------
 
-app = create_fastapi_app(
-    env=environment,
-    action_type=SupportAction,
-    observation_type=SupportObservation,
+app = create_app(
+    CustomerSupportEnvironment,
+    SupportAction,
+    SupportObservation,
+    env_name="ecommerce_support_env"
 )
 
 

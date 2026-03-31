@@ -187,7 +187,7 @@
         "difficulty": "hard",
         "ground_truth_category": "billing",
         "correct_escalation_path": "billing_team",
-        "scenario_summary": "Customer has been charged 3 times for one order over 2 weeks. Has contacted support twice before with no resolution. Now threatening to dispute with credit card company.",
+        "ticket_text": "Customer has been charged 3 times for one order over 2 weeks. Has contacted support twice before with no resolution. Now threatening to dispute with credit card company.",
         "conversation_history": [
           {
             "turn": 1,
@@ -220,7 +220,7 @@
         "difficulty": "hard",
         "ground_truth_category": "delivery",
         "correct_escalation_path": "logistics_team",
-        "scenario_summary": "Customer ordered a birthday gift. It is now 2 weeks late. First agent told her it would arrive in 2 days — it didn't. She is very upset.",
+        "ticket_text": "Customer ordered a birthday gift. It is now 2 weeks late. First agent told her it would arrive in 2 days — it didn't. She is very upset.",
         "conversation_history": [
           {
             "turn": 1,
@@ -253,7 +253,7 @@
         "difficulty": "hard",
         "ground_truth_category": "product_issue",
         "correct_escalation_path": "senior_support",
-        "scenario_summary": "Customer bought an expensive camera. It stopped working after 3 days. First asked for repair, then replacement — both denied by previous agents. Now threatening legal action.",
+        "ticket_text": "Customer bought an expensive camera. It stopped working after 3 days. First asked for repair, then replacement — both denied by previous agents. Now threatening legal action.",
         "conversation_history": [
           {
             "turn": 1,
@@ -287,7 +287,7 @@
         "difficulty": "hard",
         "ground_truth_category": "refund",
         "correct_escalation_path": "billing_team",
-        "scenario_summary": "Customer returned items 3 weeks ago. Refund still not received. Has screenshots of all communication. Becoming increasingly frustrated across 3 turns.",
+        "ticket_text": "Customer returned items 3 weeks ago. Refund still not received. Has screenshots of all communication. Becoming increasingly frustrated across 3 turns.",
         "conversation_history": [
           {
             "turn": 1,
@@ -320,7 +320,7 @@
         "difficulty": "hard",
         "ground_truth_category": "delivery",
         "correct_escalation_path": "logistics_team",
-        "scenario_summary": "Customer's order was marked delivered but never received. Neighbour confirmed no parcel. Suspects theft or misdelivery. Previous agent closed the ticket without resolution.",
+        "ticket_text": "Customer's order was marked delivered but never received. Neighbour confirmed no parcel. Suspects theft or misdelivery. Previous agent closed the ticket without resolution.",
         "conversation_history": [
           {
             "turn": 1,
@@ -353,7 +353,7 @@
         "difficulty": "hard",
         "ground_truth_category": "product_issue",
         "correct_escalation_path": "technical_team",
-        "scenario_summary": "Customer bought a smart home device that is incompatible with their existing setup despite the product page claiming compatibility. Multiple agents gave conflicting technical advice.",
+        "ticket_text": "Customer bought a smart home device that is incompatible with their existing setup despite the product page claiming compatibility. Multiple agents gave conflicting technical advice.",
         "conversation_history": [
           {
             "turn": 1,

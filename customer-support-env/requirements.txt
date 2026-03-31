@@ -1,3 +1,21 @@
-pydantic
-openai
-pytest
+# requirements.txt
+# E-Commerce Customer Support Environment
+
+# OpenEnv framework — core dependency
+openenv
+
+# Web framework — used by OpenEnv server
+fastapi
+uvicorn[standard]
+
+# Data validation — used by models.py
+pydantic>=2.0
+
+# OpenAI client — used by baseline script
+openai>=1.0
+
+# HTTP client — used internally
+httpx
+
+# Standard utilities
+python-dotenv
