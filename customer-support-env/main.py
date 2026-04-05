@@ -12,14 +12,21 @@
 #   docker run -p 7860:7860 ecommerce-support-env
 
 import os
+import json
+import asyncio
+import time
+from pathlib import Path
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, BackgroundTasks, HTTPException
 from fastapi.responses import JSONResponse
 from openenv.core.env_server import create_app
 from models import SupportAction, SupportObservation
 from env.environment import CustomerSupportEnvironment
 from env.graders import get_grader
+
+# Import fine-tuning functions
+from fine_tune_model import upload_training_file, start_fine_tuning, monitor_fine_tuning
 
 
 # ---------------------------------------------------------------------------
@@ -194,7 +201,215 @@ async def info():
             "classify", "respond", "escalate", "request_info", "resolve"
         ],
         "reward_range": [0.0, 1.0],
+        "endpoints": {
+            "environment": ["/reset", "/step", "/state"],
+            "grading": ["/grade"],
+            "health": ["/health"],
+            "info": ["/info"],
+            "fine_tuning": [
+                "/finetune/prepare-data",
+                "/finetune/start",
+                "/finetune/status/{job_id}",
+                "/finetune/models",
+                "/finetune/jobs"
+            ]
+        }
     })
+
+
+# ---------------------------------------------------------------------------
+# Fine-tuning endpoints
+# Allow users to fine-tune models through the API
+# ---------------------------------------------------------------------------
+
+def get_openai_client():
+    """Get OpenAI client with error handling."""
+    from openai import OpenAI
+
+    api_key = os.environ.get("OPENAI_API_KEY")
+    if not api_key:
+        raise HTTPException(
+            status_code=400,
+            detail="OPENAI_API_KEY environment variable not set"
+        )
+    return OpenAI(api_key=api_key)
+
+
+@app.post("/finetune/prepare-data")
+async def prepare_finetune_data():
+    """Prepare training data for fine-tuning."""
+    try:
+        # Import and run the data preparation
+        from prepare_finetune_data import prepare_finetune_data as prep_data
+        prep_data()
+
+        # Check what files were created
+        data_files = [
+            "finetune_task1_classification.jsonl",
+            "finetune_task2_response.jsonl",
+            "finetune_task3_escalation.jsonl",
+            "finetune_all_tasks.jsonl"
+        ]
+
+        created_files = []
+        for filename in data_files:
+            if Path(filename).exists():
+                created_files.append(filename)
+
+        return JSONResponse(content={
+            "status": "success",
+            "message": f"Training data prepared successfully. Created {len(created_files)} files.",
+            "files": created_files
+        })
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to prepare data: {str(e)}")
+
+
+@app.post("/finetune/start")
+async def start_finetuning(
+    background_tasks: BackgroundTasks,
+    data_file: str = "finetune_all_tasks.jsonl",
+    model: str = "gpt-3.5-turbo",
+    suffix: str = None,
+    monitor: bool = False
+):
+    """Start a fine-tuning job."""
+    try:
+        client = get_openai_client()
+
+        # Check if data file exists
+        data_path = Path(data_file)
+        if not data_path.exists():
+            raise HTTPException(
+                status_code=404,
+                detail=f"Training data file {data_file} not found. Run /finetune/prepare-data first."
+            )
+
+        # Upload training file
+        training_file_id = upload_training_file(client, str(data_path))
+
+        # Start fine-tuning
+        job_id = start_fine_tuning(client, training_file_id, model, suffix)
+
+        # Save job info
+        job_info = {
+            "job_id": job_id,
+            "training_file": data_file,
+            "base_model": model,
+            "timestamp": time.time()
+        }
+
+        with open("finetune_job.json", "w") as f:
+            json.dump(job_info, f, indent=2)
+
+        # Start monitoring in background if requested
+        if monitor:
+            background_tasks.add_task(monitor_fine_tuning_background, client, job_id)
+
+        return JSONResponse(content={
+            "status": "success",
+            "job_id": job_id,
+            "training_file_id": training_file_id,
+            "message": "Fine-tuning job started successfully",
+            "job_info": job_info
+        })
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to start fine-tuning: {str(e)}")
+
+
+async def monitor_fine_tuning_background(client, job_id: str):
+    """Monitor fine-tuning job in background."""
+    try:
+        model_id = monitor_fine_tuning(client, job_id)
+        if model_id:
+            print(f"Fine-tuning completed! Model: {model_id}")
+        else:
+            print(f"Fine-tuning job {job_id} ended without success")
+    except Exception as e:
+        print(f"Error monitoring fine-tuning job {job_id}: {str(e)}")
+
+
+@app.get("/finetune/status/{job_id}")
+async def get_finetuning_status(job_id: str):
+    """Get the status of a fine-tuning job."""
+    client = get_openai_client()
+
+    try:
+        job = client.fine_tuning.jobs.retrieve(job_id)
+
+        return JSONResponse(content={
+            "job_id": job_id,
+            "status": job.status,
+            "model": getattr(job, 'fine_tuned_model', None),
+            "created_at": job.created_at,
+            "finished_at": getattr(job, 'finished_at', None),
+            "error": getattr(job, 'error', None)
+        })
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to get job status: {str(e)}")
+
+
+@app.get("/finetune/models")
+async def list_finetuned_models():
+    """List available fine-tuned models."""
+    client = get_openai_client()
+
+    try:
+        # Get fine-tuning jobs
+        jobs = client.fine_tuning.jobs.list()
+
+        models = []
+        for job in jobs.data:
+            if job.status == "succeeded" and hasattr(job, 'fine_tuned_model'):
+                models.append({
+                    "model_id": job.fine_tuned_model,
+                    "job_id": job.id,
+                    "base_model": job.model,
+                    "created_at": job.created_at,
+                    "suffix": getattr(job, 'suffix', None)
+                })
+
+        return JSONResponse(content={
+            "models": models,
+            "count": len(models)
+        })
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to list models: {str(e)}")
+
+
+@app.get("/finetune/jobs")
+async def list_finetuning_jobs():
+    """List all fine-tuning jobs."""
+    client = get_openai_client()
+
+    try:
+        jobs = client.fine_tuning.jobs.list(limit=20)
+
+        job_list = []
+        for job in jobs.data:
+            job_list.append({
+                "job_id": job.id,
+                "status": job.status,
+                "model": getattr(job, 'fine_tuned_model', None),
+                "base_model": job.model,
+                "created_at": job.created_at,
+                "finished_at": getattr(job, 'finished_at', None),
+                "suffix": getattr(job, 'suffix', None)
+            })
+
+        return JSONResponse(content={
+            "jobs": job_list,
+            "count": len(job_list)
+        })
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to list jobs: {str(e)}")
 
 
 # ---------------------------------------------------------------------------
