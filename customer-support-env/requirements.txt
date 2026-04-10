@@ -2,7 +2,7 @@
 # E-Commerce Customer Support Environment
 
 # OpenEnv framework — core dependency
-openenv
+openenv-core[core]>=0.2.2
 
 # Web framework — used by OpenEnv server
 fastapi
