@@ -21,12 +21,12 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, BackgroundTasks, HTTPException
 from fastapi.responses import JSONResponse
 from openenv.core.env_server import create_app
-from models import SupportAction, SupportObservation
-from env.environment import CustomerSupportEnvironment
-from env.graders import get_grader
+from customer_support_env.models import SupportAction, SupportObservation
+from customer_support_env.env.environment import CustomerSupportEnvironment
+from customer_support_env.env.graders import get_grader
 
 # Import fine-tuning functions
-from fine_tune_model import upload_training_file, start_fine_tuning, monitor_fine_tuning
+from customer_support_env.fine_tune_model import upload_training_file, start_fine_tuning, monitor_fine_tuning
 
 
 # ---------------------------------------------------------------------------
@@ -54,6 +54,23 @@ app = create_app(
 # Required by openenv.yaml runtime.health_endpoint
 # Also used by Docker HEALTHCHECK and HuggingFace Spaces
 # ---------------------------------------------------------------------------
+
+@app.get("/")
+async def root():
+    return {
+        "message": "E-commerce Customer Support RL Environment",
+        "description": "OpenEnv reinforcement learning environment for support ticket handling",
+        "endpoints": {
+            "health": "/health",
+            "info": "/info",
+            "docs": "/docs",
+            "reset": "/reset",
+            "step": "/step",
+            "state": "/state",
+            "grade": "/grade"
+        }
+    }
+
 
 @app.get("/health")
 async def health():
@@ -240,7 +257,7 @@ async def prepare_finetune_data():
     """Prepare training data for fine-tuning."""
     try:
         # Import and run the data preparation
-        from prepare_finetune_data import prepare_finetune_data as prep_data
+        from customer_support_env.prepare_finetune_data import prepare_finetune_data as prep_data
         prep_data()
 
         # Check what files were created

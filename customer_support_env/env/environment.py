@@ -10,7 +10,7 @@ from pathlib import Path
 from openenv.core.env_server.interfaces import Environment
 from openenv.core.env_server.types import State
 
-from models import SupportAction, SupportObservation
+from customer_support_env.models import SupportAction, SupportObservation
 
 # ---------------------------------------------------------------------------
 # Constants

@@ -1,8 +1,8 @@
 # test_episode.py
 # Run with: python test_episode.py
 
-from env.environment import CustomerSupportEnvironment
-from models import SupportAction
+from customer_support_env.env.environment import CustomerSupportEnvironment
+from customer_support_env.models import SupportAction
 
 print("="*50)
 print("TEST: Full Task 1 Episode")

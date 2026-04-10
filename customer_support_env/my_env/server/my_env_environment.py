@@ -19,7 +19,7 @@ from openenv.core.env_server.types import State
 try:
     from ..models import MyAction, MyObservation
 except ImportError:
-    from models import MyAction, MyObservation
+    from customer_support_env.models import MyAction, MyObservation
 
 
 class MyEnvironment(Environment):

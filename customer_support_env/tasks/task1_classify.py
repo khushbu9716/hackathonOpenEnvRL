@@ -1,55 +1,43 @@
-# tasks/task3_escalate.py
-# Task 3 — Multi-turn Escalation Handling (Hard)
+# tasks/task1_classify.py
+# Task 1 — Ticket Classification (Easy)
 #
-# The agent handles a frustrated customer across multiple turns.
-# Must de-escalate, escalate to correct department, and stay consistent.
-# Max 10 steps.
+# The agent reads a support ticket and classifies it into the correct category.
+# No response required. Max 3 steps.
 
 import json
 from pathlib import Path
 
-from env.environment import CustomerSupportEnvironment
-from env.graders import get_grader
-from models import SupportAction
+from customer_support_env.env.environment import CustomerSupportEnvironment
+from customer_support_env.env.graders import get_grader
+from customer_support_env.models import SupportAction
 
 # ---------------------------------------------------------------------------
 # Task Config
 # ---------------------------------------------------------------------------
 
-TASK_ID = "task3_escalate"
-DIFFICULTY = "hard"
-MAX_STEPS = 10
+TASK_ID = "task1_classify"
+DIFFICULTY = "easy"
+MAX_STEPS = 3
 PASS_THRESHOLD = 0.5
 
-SYSTEM_PROMPT = """You are a senior customer support agent for an e-commerce company.
+SYSTEM_PROMPT = """You are a customer support agent for an e-commerce company.
 
-You are handling a frustrated customer who has had previous bad experiences
-with our support team. The conversation history is provided.
+Your ONLY job is to read the support ticket and classify it into exactly
+one of these categories:
 
-Your responsibilities:
-1. Classify the ticket category
-2. Acknowledge previous failures — never ignore prior unresolved issues
-3. De-escalate the customer's frustration with empathetic language
-4. Escalate to the correct department based on the issue:
-   - billing_team      : duplicate charges, refund delays, billing disputes
-   - logistics_team    : lost packages, delivery failures, wrong address
-   - technical_team    : product compatibility, firmware, technical defects
-   - legal_team        : legal threats, consumer protection mentions
-   - senior_support    : abuse, repeated failures, $500+ product issues
-5. Provide a concrete timeline or next step
-6. Resolve the ticket
+  - billing         : payment issues, duplicate charges, invoices
+  - delivery        : shipping delays, lost packages, tracking issues
+  - refund          : refund requests, return status, money not received
+  - product_issue   : broken items, defective products, technical faults
+  - general_inquiry : questions about policies, discounts, general info
 
-Critical rules:
-  - NEVER contradict something you said in an earlier turn
-  - NEVER make promises you cannot keep (e.g. "arrives tomorrow")
-  - ALWAYS acknowledge if the customer mentions a legal threat
-  - ALWAYS offer refund as an option for product compatibility issues
+Steps:
+1. Call classify with the correct category
+2. Call resolve to close the ticket
 
 Always respond with valid JSON only. Examples:
 {"action_type": "classify", "category": "billing"}
-{"action_type": "respond", "message": "I sincerely apologise for the previous..."}
-{"action_type": "escalate", "department": "billing_team"}
-{"action_type": "resolve", "resolution_note": "Escalated to billing team."}
+{"action_type": "resolve", "resolution_note": "Ticket classified."}
 """
 
 # ---------------------------------------------------------------------------
@@ -58,7 +46,7 @@ Always respond with valid JSON only. Examples:
 
 def run_episode(agent_fn, ticket_id: str = None, verbose: bool = True) -> dict:
     """
-    Run a single Task 3 episode.
+    Run a single Task 1 episode.
 
     Args:
         agent_fn  : Function(system_prompt, observation_text) -> dict (raw action)
@@ -75,16 +63,12 @@ def run_episode(agent_fn, ticket_id: str = None, verbose: bool = True) -> dict:
 
     if verbose:
         print(f"\n{'='*60}")
-        print(f"TASK 3 | Ticket: {obs.ticket_id} | Difficulty: {obs.difficulty}")
-        print(f"Scenario: {obs.ticket_text}")
-        print(f"Conversation history turns: {len(obs.conversation_history)}")
+        print(f"TASK 1 | Ticket: {obs.ticket_id} | Difficulty: {obs.difficulty}")
+        print(f"Ticket: {obs.ticket_text}")
         print(f"{'='*60}")
 
+    classify_attempt_count = 0
     classification_value = None
-    escalation_department = None
-    resolution_note = None
-    classified = False
-    responded = False
     steps_taken = 0
 
     for step in range(MAX_STEPS):
@@ -102,14 +86,8 @@ def run_episode(agent_fn, ticket_id: str = None, verbose: bool = True) -> dict:
             continue
 
         if action.action_type == "classify":
+            classify_attempt_count += 1
             classification_value = action.category
-            classified = True
-        elif action.action_type == "respond":
-            responded = True
-        elif action.action_type == "escalate":
-            escalation_department = action.department
-        elif action.action_type == "resolve":
-            resolution_note = action.resolution_note
 
         obs = env.step(action)
         steps_taken += 1
@@ -123,17 +101,13 @@ def run_episode(agent_fn, ticket_id: str = None, verbose: bool = True) -> dict:
     ticket_data = _load_ticket(TASK_ID, obs.ticket_id)
     result = grader.grade(
         ticket=ticket_data,
-        escalation_department=escalation_department,
-        conversation_history=obs.conversation_history,
-        resolution_note=resolution_note,
-        classified=classified,
-        responded=responded,
+        classification_value=classification_value,
+        classify_attempt_count=classify_attempt_count if classify_attempt_count > 0 else 1,
     )
 
     if verbose:
         print(f"\nFINAL SCORE: {result.score} | Passed: {result.passed}")
         print(f"Feedback: {result.feedback}")
-        print(f"Breakdown: {result.breakdown}")
 
     return {
         "task_id": TASK_ID,
@@ -143,12 +117,11 @@ def run_episode(agent_fn, ticket_id: str = None, verbose: bool = True) -> dict:
         "feedback": result.feedback,
         "passed": result.passed,
         "steps_taken": steps_taken,
-        "escalation_department": escalation_department,
     }
 
 
 def run_all(agent_fn, verbose: bool = True) -> list:
-    """Run all Task 3 tickets and return scores."""
+    """Run all Task 1 tickets and return scores."""
     tickets_path = Path(__file__).parent.parent / "data" / "tickets.json"
     with open(tickets_path) as f:
         all_tickets = json.load(f)
@@ -159,7 +132,7 @@ def run_all(agent_fn, verbose: bool = True) -> list:
         results.append(result)
 
     avg_score = round(sum(r["score"] for r in results) / len(results), 4)
-    print(f"\nTASK 3 AVERAGE SCORE: {avg_score} over {len(results)} tickets")
+    print(f"\nTASK 1 AVERAGE SCORE: {avg_score} over {len(results)} tickets")
     return results
 
 
@@ -174,16 +147,7 @@ def _format_observation(obs) -> str:
     ]
     if obs.order_id:
         lines.append(f"Order ID: {obs.order_id}")
-    lines.append(f"Issue: {obs.ticket_text}")
-
-    if obs.conversation_history:
-        lines.append("\n--- Conversation History ---")
-        for turn in obs.conversation_history:
-            role = turn.get("role", "unknown").upper()
-            content = turn.get("content", "")
-            lines.append(f"{role}: {content}")
-        lines.append("--- End of History ---\n")
-
+    lines.append(f"Message: {obs.ticket_text}")
     lines.append(f"Available actions: {obs.available_actions}")
     if obs.last_action_feedback:
         lines.append(f"Last feedback: {obs.last_action_feedback}")

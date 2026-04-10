@@ -1,5 +1,5 @@
-from env.environment import CustomerSupportEnv
-from env.models import Action
+from customer_support_env.env.environment import CustomerSupportEnv
+from customer_support_env.env.models import Action
 
 def test_env():
     env = CustomerSupportEnv()

@@ -8,9 +8,9 @@
 import json
 from pathlib import Path
 
-from env.environment import CustomerSupportEnvironment
-from env.graders import get_grader
-from models import SupportAction
+from customer_support_env.env.environment import CustomerSupportEnvironment
+from customer_support_env.env.graders import get_grader
+from customer_support_env.models import SupportAction
 
 # ---------------------------------------------------------------------------
 # Task Config

@@ -39,7 +39,7 @@ try:
     from ..models import MyAction, MyObservation
     from .my_env_environment import MyEnvironment
 except ModuleNotFoundError:
-    from models import MyAction, MyObservation
+    from customer_support_env.models import MyAction, MyObservation
     from server.my_env_environment import MyEnvironment
 
 
